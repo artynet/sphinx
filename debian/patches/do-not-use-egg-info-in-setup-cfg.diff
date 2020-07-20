@@ -1,0 +1,15 @@
+diff --git a/setup.cfg b/setup.cfg
+index 37e42df84..d18200364 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -1,10 +1,6 @@
+ [metadata]
+ license_file = LICENSE
+ 
+-[egg_info]
+-tag_build = .dev
+-tag_date = true
+-
+ [aliases]
+ release = egg_info -Db ''
+ upload = upload --sign --identity=36580288
