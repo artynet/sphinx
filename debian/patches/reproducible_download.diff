@@ -1,0 +1,40 @@
+From: Dmitry Shachnev <mitya57@gmail.com>
+Date: Mon, 3 Jun 2019 16:25:20 +0300
+Subject: Make generated download links reproducible
+
+Without this change the hexdigest generated in DownloadFiles.add_file()
+depends on source_dir, while just the path fragment relative to it is
+sufficient.
+
+(cherry picked from commit 6fc8873087ce38f1a4217ca8d5dc2beaf0c32cda)
+---
+ sphinx/environment/collectors/asset.py | 2 +-
+ tests/test_build_html5.py              | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sphinx/environment/collectors/asset.py b/sphinx/environment/collectors/asset.py
+index 7ab3c2c..5d89a0d 100644
+--- a/sphinx/environment/collectors/asset.py
++++ b/sphinx/environment/collectors/asset.py
+@@ -137,7 +137,7 @@ class DownloadFileCollector(EnvironmentCollector):
+                     logger.warning(__('download file not readable: %s') % filename,
+                                    location=node, type='download', subtype='not_readable')
+                     continue
+-                node['filename'] = app.env.dlfiles.add_file(app.env.docname, filename)
++                node['filename'] = app.env.dlfiles.add_file(app.env.docname, rel_filename)
+ 
+ 
+ def setup(app):
+diff --git a/tests/test_build_html5.py b/tests/test_build_html5.py
+index 97df079..5a7820b 100644
+--- a/tests/test_build_html5.py
++++ b/tests/test_build_html5.py
+@@ -354,7 +354,7 @@ def test_html_download(app):
+                     confoverrides={'html_experimental_html5_writer': True})
+ def test_html_download_role(app, status, warning):
+     app.build()
+-    digest = md5((app.srcdir / 'dummy.dat').encode('utf-8')).hexdigest()
++    digest = md5(b'dummy.dat').hexdigest()
+     assert (app.outdir / '_downloads' / digest / 'dummy.dat').exists()
+ 
+     content = (app.outdir / 'index.html').text()

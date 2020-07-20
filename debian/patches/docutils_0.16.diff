@@ -1,0 +1,115 @@
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Sat, 14 Dec 2019 11:40:50 +0900
+Subject: Fix #6887: Sphinx crashes with docutils-0.16b0
+
+(cherry picked from commit faedcc48ccb942b9a7b758b699b30f0d026c0771)
+---
+ sphinx/builders/latex/__init__.py | 10 ++++------
+ sphinx/domains/std.py             | 12 +++++-------
+ sphinx/util/nodes.py              |  2 +-
+ sphinx/writers/html.py            |  2 +-
+ sphinx/writers/html5.py           |  2 +-
+ sphinx/writers/texinfo.py         |  5 +++--
+ 6 files changed, 15 insertions(+), 18 deletions(-)
+
+diff --git a/sphinx/builders/latex/__init__.py b/sphinx/builders/latex/__init__.py
+index 0734f9e..664ca94 100644
+--- a/sphinx/builders/latex/__init__.py
++++ b/sphinx/builders/latex/__init__.py
+@@ -196,12 +196,10 @@ class LaTeXBuilder(Builder):
+             destination = SphinxFileOutput(destination_path=path.join(self.outdir, targetname),
+                                            encoding='utf-8', overwrite_if_changed=True)
+             logger.info(__("processing %s..."), targetname, nonl=1)
+-            toctrees = self.env.get_doctree(docname).traverse(addnodes.toctree)
+-            if toctrees:
+-                if toctrees[0].get('maxdepth') > 0:
+-                    tocdepth = toctrees[0].get('maxdepth')
+-                else:
+-                    tocdepth = None
++            doctree = self.env.get_doctree(docname)
++            toctree = next(iter(doctree.traverse(addnodes.toctree)), None)
++            if toctree and toctree.get('maxdepth') > 0:
++                tocdepth = toctree.get('maxdepth')
+             else:
+                 tocdepth = None
+             doctree = self.assemble_doctree(
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index 9e590c5..d84a8da 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -634,15 +634,13 @@ class StandardDomain(Domain):
+                 sectname = self.get_numfig_title(node)
+                 if not sectname:
+                     continue
+-            elif node.traverse(addnodes.toctree):
+-                n = node.traverse(addnodes.toctree)[0]
+-                if n.get('caption'):
+-                    sectname = n['caption']
++            else:
++                toctree = next(iter(node.traverse(addnodes.toctree)), None)
++                if toctree and toctree.get('caption'):
++                    sectname = toctree.get('caption')
+                 else:
++                    # anonymous-only labels
+                     continue
+-            else:
+-                # anonymous-only labels
+-                continue
+             labels[name] = docname, labelid, sectname
+ 
+     def check_consistency(self):
+diff --git a/sphinx/util/nodes.py b/sphinx/util/nodes.py
+index 9656df7..973b6b9 100644
+--- a/sphinx/util/nodes.py
++++ b/sphinx/util/nodes.py
+@@ -94,7 +94,7 @@ def apply_source_workaround(node):
+         logger.debug('[i18n] PATCH: %r to have rawsource: %s',
+                      get_full_module_name(node), repr_domxml(node))
+         # strip classifier from rawsource of term
+-        for classifier in reversed(node.parent.traverse(nodes.classifier)):
++        for classifier in reversed(list(node.parent.traverse(nodes.classifier))):
+             node.rawsource = re.sub(r'\s*:\s*%s' % re.escape(classifier.astext()),
+                                     '', node.rawsource)
+ 
+diff --git a/sphinx/writers/html.py b/sphinx/writers/html.py
+index eb2cb90..8c587ed 100644
+--- a/sphinx/writers/html.py
++++ b/sphinx/writers/html.py
+@@ -459,7 +459,7 @@ class HTMLTranslator(BaseTranslator):
+             self.add_permalink_ref(node.parent, _('Permalink to this code'))
+         elif isinstance(node.parent, nodes.figure):
+             image_nodes = node.parent.traverse(nodes.image)
+-            target_node = image_nodes and image_nodes[0] or node.parent
++            target_node = next(iter(image_nodes), None) or node.parent
+             self.add_permalink_ref(target_node, _('Permalink to this image'))
+         elif node.parent.get('toctree'):
+             self.add_permalink_ref(node.parent.parent, _('Permalink to this toctree'))
+diff --git a/sphinx/writers/html5.py b/sphinx/writers/html5.py
+index 115e44c..9047e1c 100644
+--- a/sphinx/writers/html5.py
++++ b/sphinx/writers/html5.py
+@@ -405,7 +405,7 @@ class HTML5Translator(BaseTranslator):
+             self.add_permalink_ref(node.parent, _('Permalink to this code'))
+         elif isinstance(node.parent, nodes.figure):
+             image_nodes = node.parent.traverse(nodes.image)
+-            target_node = image_nodes and image_nodes[0] or node.parent
++            target_node = next(iter(image_nodes), None) or node.parent
+             self.add_permalink_ref(target_node, _('Permalink to this image'))
+         elif node.parent.get('toctree'):
+             self.add_permalink_ref(node.parent.parent, _('Permalink to this toctree'))
+diff --git a/sphinx/writers/texinfo.py b/sphinx/writers/texinfo.py
+index 63c7d2a..74e86ed 100644
+--- a/sphinx/writers/texinfo.py
++++ b/sphinx/writers/texinfo.py
+@@ -304,8 +304,9 @@ class TexinfoTranslator(nodes.NodeVisitor):
+         # type: () -> None
+         """Collect the menu entries for each "node" section."""
+         node_menus = self.node_menus
+-        for node in ([self.document] +
+-                     self.document.traverse(nodes.section)):
++        targets = [self.document]  # type: List[nodes.Element]
++        targets.extend(self.document.traverse(nodes.section))
++        for node in targets:
+             assert 'node_name' in node and node['node_name']
+             entries = [s['node_name'] for s in find_subsections(node)]
+             node_menus[node['node_name']] = entries

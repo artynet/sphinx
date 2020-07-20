@@ -1,0 +1,53 @@
+From: Dmitry Shachnev <mitya57@debian.org>
+Date: Wed, 8 Apr 2020 19:31:12 +0300
+Subject: Make Sphinx' documentation use HTML 5 builder
+
+shared-mime-info 1.11 and newer versions that include commit [1]
+started to (correctly) detect XHTML files as XHTML and not HTML.
+
+However that makes WebKitGTK use the XML parser which is more strict
+than the HTML parser, and it does not allow certain symbols like <, >
+and & even inside <script> tags. A script in search.html contained
+such symbols, which caused parsing errors, and that caused jstests to
+fail.
+
+Instead of escaping these symbols as &lt; &gt; and &amp;, switch to the
+more modern HTML 5 format.
+
+This affects only Sphinx' own documentation, not other projects built
+by Sphinx.
+
+Also update the basic template to not set xmlns attribute for the root
+element if the doctype is HTML 5.
+
+[1]: https://gitlab.freedesktop.org/xdg/shared-mime-info/-/commit/8ae13a589577e9bd
+---
+ doc/conf.py                     | 1 +
+ sphinx/themes/basic/layout.html | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/doc/conf.py b/doc/conf.py
+index fd12727..0ffb2ed 100644
+--- a/doc/conf.py
++++ b/doc/conf.py
+@@ -28,6 +28,7 @@ html_static_path = ['_static']
+ html_sidebars = {'index': ['indexsidebar.html', 'searchbox.html']}
+ html_additional_pages = {'index': 'index.html'}
+ html_use_opensearch = 'http://sphinx-doc.org'
++html_experimental_html5_writer = True
+ 
+ htmlhelp_basename = 'Sphinxdoc'
+ 
+diff --git a/sphinx/themes/basic/layout.html b/sphinx/themes/basic/layout.html
+index 987aeeb..8dfa365 100644
+--- a/sphinx/themes/basic/layout.html
++++ b/sphinx/themes/basic/layout.html
+@@ -108,7 +108,7 @@
+ {%- if html_tag %}
+ {{ html_tag }}
+ {%- else %}
+-<html xmlns="http://www.w3.org/1999/xhtml"{% if language is not none %} lang="{{ language }}"{% endif %}>
++<html{% if not html5_doctype %} xmlns="http://www.w3.org/1999/xhtml"{% endif %}{% if language is not none %} lang="{{ language }}"{% endif %}>
+ {%- endif %}
+   <head>
+     {%- if not html5_doctype and not skip_ua_compatible %}

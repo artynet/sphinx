@@ -1,0 +1,24 @@
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Mon, 29 Jul 2019 01:35:50 +0900
+Subject: Fix #6620: i18n: classifiers of definition list are not translated
+ with docutils-0.15
+
+(cherry picked from commit c45f962b05106d91d64d9fa820a3951b694d9a6a)
+---
+ sphinx/util/nodes.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/sphinx/util/nodes.py b/sphinx/util/nodes.py
+index 1777f58..9656df7 100644
+--- a/sphinx/util/nodes.py
++++ b/sphinx/util/nodes.py
+@@ -79,6 +79,9 @@ def apply_source_workaround(node):
+         node.source = definition_list_item.source
+         node.line = definition_list_item.line - 1
+         node.rawsource = node.astext()  # set 'classifier1' (or 'classifier2')
++    elif isinstance(node, nodes.classifier) and not node.source:
++        # docutils-0.15 fills in rawsource attribute, but not in source.
++        node.source = node.parent.source
+     if isinstance(node, nodes.image) and node.source is None:
+         logger.debug('[i18n] PATCH: %r to have source, line: %s',
+                      get_full_module_name(node), repr_domxml(node))

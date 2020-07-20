@@ -1,0 +1,21 @@
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Mon, 14 Jan 2019 00:19:19 +0900
+Subject: Remove assets for websupport
+
+(cherry picked from commit 2569776ffd1bd3b7557b505d7abc58b59dfba0ce)
+---
+ tests/test_build_qthelp.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/tests/test_build_qthelp.py b/tests/test_build_qthelp.py
+index 904eaff..b1a0093 100644
+--- a/tests/test_build_qthelp.py
++++ b/tests/test_build_qthelp.py
+@@ -28,7 +28,6 @@ def test_qthelp_basic(app, status, warning):
+     assert '<file>genindex.html</file>' in qhp
+     assert '<file>index.html</file>' in qhp
+     assert '<file>_static/basic.css</file>' in qhp
+-    assert '<file>_static/down.png</file>' in qhp
+ 
+     qhcp = (app.outdir / 'Python.qhcp').text()
+     assert '<title>Python  documentation</title>' in qhcp

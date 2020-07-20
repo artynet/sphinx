@@ -1,0 +1,125 @@
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Thu, 28 Nov 2019 02:00:26 +0900
+Subject: Fix #6867: text: extra spaces are inserted to hyphenated words on
+ folding lines
+
+(cherry picked from commit 5a05cabd6acd7de3929b355a67ca76298f3baa27)
+---
+ sphinx/writers/text.py   | 33 ++++++++++++++++++++-------------
+ tests/test_build_text.py | 22 ++++++++++++----------
+ tests/test_intl.py       |  7 +++++--
+ 3 files changed, 37 insertions(+), 25 deletions(-)
+
+diff --git a/sphinx/writers/text.py b/sphinx/writers/text.py
+index 646cb54..9797cf2 100644
+--- a/sphinx/writers/text.py
++++ b/sphinx/writers/text.py
+@@ -228,15 +228,14 @@ class TextTranslator(nodes.NodeVisitor):
+                 toformat = []
+         do_format()
+         if first is not None and result:
+-            itemindent, item = result[0]
+-            result_rest, result = result[1:], []
+-            if item:
+-                toformat = [first + ' '.join(item)]
+-                do_format()  # re-create `result` from `toformat`
+-                _dummy, new_item = result[0]
+-                result.insert(0, (itemindent - indent, [new_item[0]]))
+-                result[1] = (itemindent, new_item[1:])
+-                result.extend(result_rest)
++            # insert prefix into first line (ex. *, [1], See also, etc.)
++            newindent = result[0][0] - indent
++            if result[0][1] == ['']:
++                result.insert(0, (newindent, [first]))
++            else:
++                text = first + result[0][1].pop(0)
++                result.insert(0, (newindent, [text]))
++
+         self.states[-1].extend(result)
+ 
+     def visit_document(self, node):
+@@ -868,14 +867,22 @@ class TextTranslator(nodes.NodeVisitor):
+         # type: (nodes.Node) -> None
+         self.new_state(2)
+ 
+-        if isinstance(node.children[0], nodes.Sequential):
+-            self.add_text(self.nl)
+-
+     def _make_depart_admonition(name):
+         # type: (unicode) -> Callable[[TextTranslator, nodes.Node], None]
+         def depart_admonition(self, node):
+             # type: (nodes.NodeVisitor, nodes.Node) -> None
+-            self.end_state(first=admonitionlabels[name] + ': ')
++            label = admonitionlabels[name]
++            indent = sum(self.stateindent) + len(label)
++            if (len(self.states[-1]) == 1 and
++                    self.states[-1][0][0] == 0 and
++                    MAXWIDTH - indent >= sum(len(s) for s in self.states[-1][0][1])):
++                # short text: append text after admonition label
++                self.stateindent[-1] += len(label)
++                self.end_state(first=label + ': ')
++            else:
++                # long text: append label before the block
++                self.states[-1].insert(0, (0, [self.nl]))
++                self.end_state(first=label + ':')
+         return depart_admonition
+ 
+     visit_attention = _visit_admonition
+diff --git a/tests/test_build_text.py b/tests/test_build_text.py
+index 42f2392..73b13fd 100644
+--- a/tests/test_build_text.py
++++ b/tests/test_build_text.py
+@@ -32,16 +32,18 @@ def test_maxwitdh_with_prefix(app, status, warning):
+     lines = result.splitlines()
+     line_widths = [column_width(line) for line in lines]
+     assert max(line_widths) < MAXWIDTH
+-    assert lines[0].startswith('See also: ham')
+-    assert lines[1].startswith('  ham')
+-    assert lines[2] == ''
+-    assert lines[3].startswith('* ham')
+-    assert lines[4].startswith('  ham')
+-    assert lines[5] == ''
+-    assert lines[6].startswith('* ham')
+-    assert lines[7].startswith('  ham')
+-    assert lines[8] == ''
+-    assert lines[9].startswith('spam egg')
++    assert lines[0].startswith('See also:')
++    assert lines[1].startswith('')
++    assert lines[2].startswith('  ham')
++    assert lines[3].startswith('  ham')
++    assert lines[4] == ''
++    assert lines[5].startswith('* ham')
++    assert lines[6].startswith('  ham')
++    assert lines[7] == ''
++    assert lines[8].startswith('* ham')
++    assert lines[9].startswith('  ham')
++    assert lines[10] == ''
++    assert lines[11].startswith('spam egg')
+ 
+ 
+ @with_text_app()
+diff --git a/tests/test_intl.py b/tests/test_intl.py
+index ac1769a..397da8b 100644
+--- a/tests/test_intl.py
++++ b/tests/test_intl.py
+@@ -343,7 +343,8 @@ def test_text_seealso(app):
+               u"\n*********************\n"
+               u"\nSee also: SHORT TEXT 1\n"
+               u"\nSee also: LONG TEXT 1\n"
+-              u"\nSee also: SHORT TEXT 2\n"
++              u"\nSee also:\n"
++              u"\n  SHORT TEXT 2\n"
+               u"\n  LONG TEXT 2\n")
+     assert result == expect
+ 
+@@ -384,7 +385,9 @@ def test_text_figure_captions(app):
+               u"14.4. IMAGE UNDER NOTE\n"
+               u"======================\n"
+               u"\n"
+-              u"Note: [image: i18n under note][image]\n"
++              u"Note:\n"
++              u"\n"
++              u"  [image: i18n under note][image]\n"
+               u"\n"
+               u"     [image: img under note][image]\n"
+               )

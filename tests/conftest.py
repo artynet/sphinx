@@ -14,6 +14,9 @@ import sys
 import docutils
 import pytest
 
+import warnings
+warnings.simplefilter('error')
+
 import sphinx
 from sphinx.testing.path import path
 
