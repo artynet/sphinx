@@ -1,0 +1,34 @@
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Fri, 20 Mar 2020 22:25:20 +0900
+Subject: Fix #7343: Sphinx builds has been slower since 2.4.0 on debug mode
+
+For now, the debug log from SphinxTranslator does not help developers.
+So this disable the log outputs.  Let's reconsider if we'll need it.
+
+(cherry picked from commit 23ffd8e01c078a68a74bdd1891006368ccd5049e)
+---
+ sphinx/util/docutils.py | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/sphinx/util/docutils.py b/sphinx/util/docutils.py
+index 23f2c88..ed93939 100644
+--- a/sphinx/util/docutils.py
++++ b/sphinx/util/docutils.py
+@@ -479,8 +479,6 @@ class SphinxTranslator(nodes.NodeVisitor):
+         for node_class in node.__class__.__mro__:
+             method = getattr(self, 'visit_%s' % (node_class.__name__), None)
+             if method:
+-                logger.debug('SphinxTranslator.dispatch_visit calling %s for %s' %
+-                             (method.__name__, node))
+                 return method(node)
+         else:
+             super().dispatch_visit(node)
+@@ -497,8 +495,6 @@ class SphinxTranslator(nodes.NodeVisitor):
+         for node_class in node.__class__.__mro__:
+             method = getattr(self, 'depart_%s' % (node_class.__name__), None)
+             if method:
+-                logger.debug('SphinxTranslator.dispatch_departure calling %s for %s' %
+-                             (method.__name__, node))
+                 return method(node)
+         else:
+             super().dispatch_departure(node)

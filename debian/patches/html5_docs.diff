@@ -1,0 +1,36 @@
+From: Dmitry Shachnev <mitya57@debian.org>
+Date: Wed, 8 Apr 2020 19:31:12 +0300
+Subject: Do not include xmlns attribute with HTML 5 doctype
+
+shared-mime-info 1.11 and newer versions that include commit [1]
+detect files that have xmlns attribute as XHTML and not HTML.
+
+However that makes WebKitGTK use the XML parser which is more strict
+than the HTML parser, and it does not allow certain symbols like <, >
+and & even inside <script> tags. A script in search.html contained
+such symbols, which caused parsing errors, and that caused jstests to
+fail.
+
+To fix this, update the basic template to not set xmlns attribute for
+the root element if the doctype is HTML 5.
+
+[1]: https://gitlab.freedesktop.org/xdg/shared-mime-info/-/commit/8ae13a589577e9bd
+
+(cherry picked from commit b0ddc26ade9c97f55c034f9405cf838acf925d68)
+---
+ sphinx/themes/basic/layout.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sphinx/themes/basic/layout.html b/sphinx/themes/basic/layout.html
+index 9692ea2..3b7ca56 100644
+--- a/sphinx/themes/basic/layout.html
++++ b/sphinx/themes/basic/layout.html
+@@ -108,7 +108,7 @@
+ {%- if html_tag %}
+ {{ html_tag }}
+ {%- else %}
+-<html xmlns="http://www.w3.org/1999/xhtml"{% if language is not none %} lang="{{ language }}"{% endif %}>
++<html{% if not html5_doctype %} xmlns="http://www.w3.org/1999/xhtml"{% endif %}{% if language is not none %} lang="{{ language }}"{% endif %}>
+ {%- endif %}
+   <head>
+     {%- if not html5_doctype and not skip_ua_compatible %}

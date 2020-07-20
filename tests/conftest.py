@@ -16,6 +16,9 @@ import sphinx
 from sphinx.testing.path import path
 from sphinx.testing import comparer
 
+import warnings
+warnings.simplefilter('error')
+
 pytest_plugins = 'sphinx.testing.fixtures'
 
 # Exclude 'roots' dirs for pytest test collector
