@@ -13,6 +13,10 @@ import sys
 
 import pytest
 
+import warnings
+warnings.simplefilter('error')
+
+import sphinx
 from sphinx.testing.path import path
 
 pytest_plugins = 'sphinx.testing.fixtures'

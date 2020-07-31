@@ -1,0 +1,100 @@
+From: Chris Lamb <lamby@debian.org>
+Date: Sat, 14 Apr 2018 10:30:54 +0100
+Subject: Ensure the set object description is reproducible.
+
+Whilst working on the Reproducible Builds effort [0], we noticed
+that sphinx could generate output that is not reproducible.
+
+In particular, the rendering of `set` objects in default arguments
+and elsewhere is currently non-determinstic. For example:
+
+    class A_Class(object):
+        a_set = {'a', 'b', 'c'}
+
+Might be rendered as any of:
+
+     {'a', 'b', 'c'}
+     {'a', 'c', 'b'}
+     {'b', 'a', 'c'}
+     {'b', 'c', 'a'}
+     {'c', 'a', 'b'}
+     {'c', 'b', 'a'}
+
+Patch attached that sorts the contents of sets whilst rendering.
+This is parallel to the `dict` key sorting.
+
+This was originally filed in Debian as #895553 [1].
+
+ [0] https://reproducible-builds.org/
+ [1] https://bugs.debian.org/895553
+
+Signed-off-by: Chris Lamb <lamby@debian.org>
+
+Forwarded: https://github.com/sphinx-doc/sphinx/pull/4834
+---
+ AUTHORS                    |  1 +
+ sphinx/util/inspect.py     |  9 +++++++++
+ tests/test_util_inspect.py | 18 ++++++++++++++++++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/AUTHORS b/AUTHORS
+index a480bf1..699f889 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -40,6 +40,7 @@ Other contributors, listed alphabetically, are:
+ * Timotheus Kampik - JS theme & search enhancements
+ * Dave Kuhlman -- original LaTeX writer
+ * Blaise Laflamme -- pyramid theme
++* Chris Lamb -- reproducibility fixes
+ * Thomas Lamb -- linkcheck builder
+ * Łukasz Langa -- partial support for autodoc
+ * Ian Lee -- quickstart improvements
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 7bb03c1..d1703a2 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -266,6 +266,15 @@ def object_description(object):
+                      (object_description(key), object_description(object[key]))
+                      for key in sorted_keys)
+             return "{%s}" % ", ".join(items)
++    if isinstance(object, set):
++        try:
++            sorted_values = sorted(object)
++        except TypeError:
++            pass  # Cannot sort set values, fall back to generic repr
++        else:
++            template = "{%s}" if PY3 else "set([%s])"
++            return template % ", ".join(object_description(x)
++                                        for x in sorted_values)
+     try:
+         s = repr(object)
+     except Exception:
+diff --git a/tests/test_util_inspect.py b/tests/test_util_inspect.py
+index eddca62..99033fb 100644
+--- a/tests/test_util_inspect.py
++++ b/tests/test_util_inspect.py
+@@ -373,6 +373,24 @@ def test_dictionary_sorting():
+     assert description == "{'a': 1, 'b': 4, 'c': 3, 'd': 2}"
+ 
+ 
++def test_set_sorting():
++    set_ = set("gfedcba")
++    description = inspect.object_description(set_)
++    if PY3:
++        assert description == "{'a', 'b', 'c', 'd', 'e', 'f', 'g'}"
++    else:
++        assert description == "set(['a', 'b', 'c', 'd', 'e', 'f', 'g'])"
++
++
++def test_set_sorting_fallback():
++    set_ = set((None, 1))
++    description = inspect.object_description(set_)
++    if PY3:
++        assert description in ("{1, None}", "{None, 1}")
++    else:
++        assert description in ("set([1, None])", "set([None, 1])")
++
++
+ def test_dict_customtype():
+     class CustomType(object):
+         def __init__(self, value):

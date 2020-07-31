@@ -1,0 +1,24 @@
+From: Chris Lamb <lamby@debian.org>
+Date: Sat, 14 Apr 2018 10:00:35 +0100
+Subject: Call object_description recursively for dict keys and values.
+
+Forwarded: https://github.com/sphinx-doc/sphinx/pull/4834
+---
+ sphinx/util/inspect.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 3b5d48e..46f4ced 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -262,7 +262,9 @@ def object_description(object):
+         except Exception:
+             pass  # Cannot sort dict keys, fall back to generic repr
+         else:
+-            items = ("%r: %r" % (key, object[key]) for key in sorted_keys)
++            items = ("%s: %s" %
++                     (object_description(key), object_description(object[key]))
++                     for key in sorted_keys)
+             return "{%s}" % ", ".join(items)
+     try:
+         s = repr(object)

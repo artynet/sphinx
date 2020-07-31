@@ -1,0 +1,21 @@
+From: Chris Lamb <lamby@debian.org>
+Date: Sat, 14 Apr 2018 10:13:38 +0100
+Subject: Fix spelling error in manpage.
+
+---
+ doc/man/sphinx-quickstart.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/doc/man/sphinx-quickstart.rst b/doc/man/sphinx-quickstart.rst
+index c4bbc531b15d..a4cdc37a8132 100644
+--- a/doc/man/sphinx-quickstart.rst
++++ b/doc/man/sphinx-quickstart.rst
+@@ -114,7 +114,7 @@ Options
+ 
+ .. option:: --extensions=EXTENSIONS
+ 
+-   Enable arbitary extensions.
++   Enable arbitrary extensions.
+ 
+ .. rubric:: Makefile and Batchfile Creation Options
+ 

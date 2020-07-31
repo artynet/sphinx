@@ -1,0 +1,28 @@
+From: Chris Lamb <lamby@debian.org>
+Date: Sat, 14 Apr 2018 09:44:21 +0100
+Subject: Fix testsuite to not rely on return types.
+
+---
+ tests/test_autodoc.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/test_autodoc.py b/tests/test_autodoc.py
+index 97e03c8..2e3b544 100644
+--- a/tests/test_autodoc.py
++++ b/tests/test_autodoc.py
+@@ -973,13 +973,13 @@ def test_partialmethod():
+         '   refs: https://docs.python.jp/3/library/functools.html#functools.partialmethod',
+         '   ',
+         '   ',
+-        '   .. py:method:: Cell.set_alive() -> None',
++        '   .. py:method:: Cell.set_alive()',
+         '      :module: target.partialmethod',
+         '   ',
+         '      Make a cell alive.',
+         '      ',
+         '   ',
+-        '   .. py:method:: Cell.set_dead() -> None',
++        '   .. py:method:: Cell.set_dead()',
+         '      :module: target.partialmethod',
+         '   ',
+         '      Make a cell dead.',

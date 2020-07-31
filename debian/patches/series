@@ -1,0 +1,11 @@
+0001-disable_js_version_check.diff
+0002-no_snowballstemmer.diff
+0003-skip_tests_network.diff
+0004-no_require_websupport.diff
+0005-Fix-testsuite-to-not-rely-on-return-types.patch
+0006-Don-t-use-Google-Fonts-to-avoid-privacy-breach.patch
+0007-Fix-spelling-error-in-manpage.patch
+0008-Call-object_description-recursively-for-dict-keys-an.patch
+0009-Ensure-the-set-object-description-is-reproducible.patch
+0010-Remove-setuptools-from-install_requires.patch
+0011-Do-not-use-external-image-in-the-documentation-templ.patch
