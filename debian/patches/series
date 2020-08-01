@@ -13,3 +13,4 @@ remove_websupport_assets.diff
 no_spaces_in_hyphenated_words.diff
 docutils_0.16.diff
 html5_docs.diff
+do-not-use-egg-info-in-setup-cfg.diff
