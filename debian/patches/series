@@ -9,3 +9,4 @@
 0009-Ensure-the-set-object-description-is-reproducible.patch
 0010-Remove-setuptools-from-install_requires.patch
 0011-Do-not-use-external-image-in-the-documentation-templ.patch
+0012-Do-not-use-egg-info-in-setup-cfg.patch
