@@ -5,7 +5,7 @@ export NO_PKG_MANGLE=1
 export LC_ALL=C.UTF-8
 export PYTHONWARNINGS=d
 
-export PYBUILD_TEST_ARGS=--verbose --ignore tests/test_websupport.py --ignore tests/test_api_translator.py --ignore tests/test_ext_autodoc_configs.py
+export PYBUILD_TEST_ARGS=--verbose --ignore tests/test_websupport.py --ignore tests/test_api_translator.py --ignore tests/test_ext_autodoc_configs.py --ignore tests/test_util_pycompat.py
 export PYBUILD_INSTALL_ARGS_python3=--install-scripts usr/share/sphinx/scripts/python3
 
 locales = $(notdir $(patsubst %/LC_MESSAGES,%,$(wildcard sphinx/locale/*/LC_MESSAGES)))

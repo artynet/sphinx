@@ -17,7 +17,7 @@ from sphinx.testing.path import path
 from sphinx.testing import comparer
 
 import warnings
-warnings.simplefilter('error')
+warnings.simplefilter("ignore", category=PendingDeprecationWarning)
 
 pytest_plugins = 'sphinx.testing.fixtures'
 
