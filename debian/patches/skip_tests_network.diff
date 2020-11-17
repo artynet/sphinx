@@ -1,0 +1,58 @@
+From: Dmitry Shachnev <mitya57@debian.org>
+Date: Tue, 20 Dec 2016 16:37:32 +0300
+Subject: Skip tests that require network access
+
+Forwarded: not-needed
+---
+ tests/test_build_latex.py     | 1 +
+ tests/test_build_linkcheck.py | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/tests/test_build_latex.py b/tests/test_build_latex.py
+index 8dbe2a4..e82e862 100644
+--- a/tests/test_build_latex.py
++++ b/tests/test_build_latex.py
+@@ -1321,6 +1321,7 @@ def test_latex_raw_directive(app, status, warning):
+     assert 'LaTeX: abc def ghi' in result
+ 
+ 
++@pytest.mark.skip('Requires internet access')
+ @pytest.mark.sphinx('latex', testroot='images')
+ def test_latex_images(app, status, warning):
+     app.builder.build_all()
+diff --git a/tests/test_build_linkcheck.py b/tests/test_build_linkcheck.py
+index a785876..8b1476f 100644
+--- a/tests/test_build_linkcheck.py
++++ b/tests/test_build_linkcheck.py
+@@ -16,6 +16,7 @@ from unittest import mock
+ import pytest
+ 
+ 
++@pytest.mark.skip('Requires internet access')
+ @pytest.mark.sphinx('linkcheck', testroot='linkcheck', freshenv=True)
+ def test_defaults(app, status, warning):
+     app.builder.build_all()
+@@ -37,6 +38,7 @@ def test_defaults(app, status, warning):
+     assert len(content.splitlines()) == 6
+ 
+ 
++@pytest.mark.skip('Requires internet access')
+ @pytest.mark.sphinx('linkcheck', testroot='linkcheck', freshenv=True)
+ def test_defaults_json(app, status, warning):
+     app.builder.build_all()
+@@ -89,6 +91,7 @@ def test_defaults_json(app, status, warning):
+         rowsby["https://www.google.com/image.png"]["info"]
+ 
+ 
++@pytest.mark.skip('Requires internet access')
+ @pytest.mark.sphinx(
+     'linkcheck', testroot='linkcheck', freshenv=True,
+     confoverrides={'linkcheck_anchors_ignore': ["^!", "^top$"],
+@@ -108,6 +111,7 @@ def test_anchors_ignored(app, status, warning):
+     # expect all ok when excluding #top
+     assert not content
+ 
++@pytest.mark.skip('Requires network access')
+ @pytest.mark.sphinx('linkcheck', testroot='linkcheck-localserver', freshenv=True)
+ def test_raises_for_invalid_status(app, status, warning):
+     server_thread = HttpServerThread(InternalServerErrorHandler, daemon=True)
